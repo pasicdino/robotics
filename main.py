@@ -14,10 +14,15 @@ FPS = 60  # Frames per second
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Robot Simulation")
 
+# Create font object
+font = pygame.font.SysFont(None, 16)
+
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GREEN = (0, 255, 0)
 
 # Initialize Map and Robot
 map_instance = Map()
@@ -53,6 +58,7 @@ while running:
 
     # Update robot
     robot.update(dt)
+    robot.update_sensors(map_instance.walls)
 
     # Render
     screen.fill(WHITE)
@@ -66,6 +72,13 @@ while running:
     end_x = robot.x + robot.radius * math.cos(robot.orientation)
     end_y = HEIGHT - (robot.y + robot.radius * math.sin(robot.orientation))
     pygame.draw.line(screen, BLACK, (int(robot.x), HEIGHT - int(robot.y)), (int(end_x), int(end_y)), 2)
+
+    # Draw sensor lines + distance text
+    for sensor in robot.sensors:
+        pygame.draw.line(screen, GREEN, (int(sensor.start_coord[0]), HEIGHT - int(sensor.start_coord[1])), (int(sensor.end_coord[0]), int(HEIGHT - sensor.end_coord[1])), 1)
+        distance_text = font.render(str(int(sensor.distance)), True, BLUE)
+        text_rect = distance_text.get_rect(center=(int(sensor.text_coord[0]), HEIGHT - int(sensor.text_coord[1])))
+        screen.blit(distance_text, text_rect)
 
     # Flip the display
     pygame.display.flip()
