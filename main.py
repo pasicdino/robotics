@@ -33,6 +33,10 @@ robot = Robot(WIDTH // 2, HEIGHT // 2, 100)  # Start the robot in the middle of 
 running = True
 clock = pygame.time.Clock()
 
+# Visualization (adjust for debug)
+sensor_lines_visible = False
+sensor_values_always_visible = False
+
 while running:
     # Limit frame rate of the game loop
     dt = clock.tick(FPS) / 1000.0
@@ -57,7 +61,7 @@ while running:
 
 
     # Update robot
-    robot.update(dt)
+    robot.update(dt, map_instance.walls)
     robot.update_sensors(map_instance.walls)
 
     # Render
@@ -75,10 +79,12 @@ while running:
 
     # Draw sensor lines + distance text
     for sensor in robot.sensors:
-        pygame.draw.line(screen, GREEN, (int(sensor.start_coord[0]), HEIGHT - int(sensor.start_coord[1])), (int(sensor.end_coord[0]), int(HEIGHT - sensor.end_coord[1])), 1)
-        distance_text = font.render(str(int(sensor.distance)), True, BLUE)
-        text_rect = distance_text.get_rect(center=(int(sensor.text_coord[0]), HEIGHT - int(sensor.text_coord[1])))
-        screen.blit(distance_text, text_rect)
+        if sensor_lines_visible:
+            pygame.draw.line(screen, GREEN, (int(sensor.start_coord[0]), HEIGHT - int(sensor.start_coord[1])), (int(sensor.end_coord[0]), int(HEIGHT - sensor.end_coord[1])), 1)
+        if sensor_values_always_visible or int(sensor.distance < sensor.init_distance):
+            distance_text = font.render(str(int(sensor.distance)), True, BLUE)
+            text_rect = distance_text.get_rect(center=(int(sensor.text_coord[0]), HEIGHT - int(sensor.text_coord[1])))
+            screen.blit(distance_text, text_rect)
 
     # Flip the display
     pygame.display.flip()

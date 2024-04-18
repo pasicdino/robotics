@@ -6,7 +6,7 @@ class Sensor:
     def __init__(self, degrees, robot):
         self.angle = math.radians(degrees)  
         self.robot = robot
-        self.length = 100
+        self.length = 120
         self.text_pos = 10
 
         self.init_distance = self.length-robot.radius
@@ -39,7 +39,7 @@ class Sensor:
         self.text_coord = [text_x, text_y]
 
         # LineString used for finding intersection
-        self.sensor_line = LineString([(self.start_coord[0], self.start_coord[1]), (self.end_coord[0], self.end_coord[1])])
+        self.sensor_line = LineString([(self.robot.x, self.robot.y), (self.end_coord[0], self.end_coord[1])])
 
     def check_intersect(self, walls):
         wall_distances = [self.init_distance] * len(walls)  # list of distances to all walls from sensor
