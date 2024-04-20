@@ -19,13 +19,14 @@ class Robot:
 
         self.orientation = 0
 
-        self.sensors = [0]*12
-        for i in range(12):
-            self.sensors[i] = Sensor(i*30, self)
+        self.sensors = [Sensor(i * 30, self) for i in range(12)]
+
 
         self.sensor_distances = [0]*12
 
         self.collision_margin = 0.001
+
+        self.velocity_vector = (0, 0)
 
     def right_motor(self, boolean, forward):
         if boolean:
@@ -45,51 +46,63 @@ class Robot:
         else:
             self.v_left = 0
 
-    def update(self, dt, walls): 
+    def update(self, dt, walls):
         R = self.radius
+        epsilon = 0.01  # This is a small margin beyond the robot's radius
+        total_radius = R + epsilon
         L = 2 * R
         omega = (self.v_right - self.v_left) / L
         v = (self.v_right + self.v_left) / 2
 
         self.orientation += omega * dt
-        #force orientation to be between 0 and 2pi
         self.orientation %= (2 * math.pi)
 
-        # COLLISION HANDLING
-        # --- 
-        collisions = self.check_collision(walls)
-        if any(collisions):
-            for idx, collision_point in enumerate(collisions):
-                if collision_point:
-                    
-                    collision_vector = [collision_point.x - self.x, collision_point.y - self.y] # vector from robot center to collision point
-                    collision_distance = math.sqrt(collision_vector[0]**2 + collision_vector[1]**2) # distance of collision vector
-                    intersection_depth =  self.radius - collision_distance  # calculate how much the robot penetrated the wall
+        # Initial proposed movement based on velocity
+        dx = v * dt * math.cos(self.orientation)
+        dy = v * dt * math.sin(self.orientation)
+        proposed_x = self.x + dx
+        proposed_y = self.y + dy
 
-                    # move robot outside wall using intersection depth and a small margin
-                    self.x -= (intersection_depth + self.collision_margin) * (collision_vector[0] / collision_distance)
-                    self.y -= (intersection_depth + self.collision_margin) * (collision_vector[1] / collision_distance)
-            return
-        # ---
-        
-        # update robot coordinates 
-        self.x = self.x + v * dt * math.cos(self.orientation)
-        self.y = self.y + v * dt * math.sin(self.orientation)
+        # Calculate the capsule path for the movement, considering robot's radius
+        movement_line = LineString([(self.x, self.y), (proposed_x, proposed_y)]).buffer(total_radius)
 
-    def check_collision(self, walls):
-        intersection_points = [[]]*len(walls)
-        robot_center = Point(self.x, self.y)
-        robot_circle = robot_center.buffer(self.radius).boundary    # bounding object of robot
+        # Iterate through each wall to check for collisions
+        for wall in walls:
+            wall_line = LineString([(wall.x1, wall.y1), (wall.x2, wall.y2)])
+            if movement_line.intersects(wall_line):
+                # Calculate the true movement vector based on power
+                movement_vector = (self.power * math.cos(self.orientation), self.power * math.sin(self.orientation))
 
-        for idx, wall in enumerate(walls):
-            wall_line = LineString([(wall[0], wall[1]), (wall[2], wall[3])])    # LineString used for finding intersection
-            if robot_circle.intersection(wall_line):
-                intersection_points[idx] = list(nearest_points(robot_circle, wall_line))[0] # calculates point of intersection with wall and adds it to list
+                wall_vector = (wall.x2 - wall.x1, wall.y2 - wall.y1)
+                wall_vector_normalized = (
+                    wall_vector[0] / math.hypot(wall_vector[0], wall_vector[1]),
+                    wall_vector[1] / math.hypot(wall_vector[0], wall_vector[1])
+                )
 
-        return intersection_points
+                # Compute parallel component
+                dot_product = movement_vector[0] * wall_vector_normalized[0] + movement_vector[1] * \
+                              wall_vector_normalized[1]
+                parallel_component = (dot_product * wall_vector_normalized[0], dot_product * wall_vector_normalized[1])
 
+                # Update proposed movement with parallel component only
+                dx = parallel_component[0] * dt
+                dy = parallel_component[1] * dt
+                proposed_x = self.x + dx
+                proposed_y = self.y + dy
+
+                # Recalculate movement line for possible subsequent collisions
+                movement_line = LineString([(self.x, self.y), (proposed_x, proposed_y)]).buffer(total_radius)
+
+        # Apply final movement updates
+        self.x = proposed_x
+        self.y = proposed_y
+        self.velocity_vector = (dx / dt, dy / dt)
     def update_sensors(self, walls):
         for idx, sensor in enumerate(self.sensors):
             sensor.update_lines()   # update sensor line positions 
             sensor.check_intersect(walls)   # check for intersections with walls
             self.sensor_distances[idx] = sensor.distance    # add distance of sensor to distance array for ANN
+
+    def is_collision(self):
+        collision = any(x<=0 for x in self.sensor_distances)
+        return collision

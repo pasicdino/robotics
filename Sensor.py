@@ -45,7 +45,7 @@ class Sensor:
         wall_distances = [self.init_distance] * len(walls)  # list of distances to all walls from sensor
 
         for idx, wall in enumerate(walls):
-            wall_line = LineString([(wall[0], wall[1]), (wall[2], wall[3])])    # LineString used for finding intersection
+            wall_line = LineString([(wall.x1, wall.y1), (wall.x2, wall.y2)])    # LineString used for finding intersection
             intersection = wall_line.intersection(self.sensor_line)     # finds intersection between wall and sensor line
 
             if intersection:
