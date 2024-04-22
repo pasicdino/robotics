@@ -17,6 +17,7 @@ class Robot:
         self.v_right = 0
         self.v_left = 0
 
+        self.direction = 0          # indicates direction of movement (1: forward/stationary, -1: backward)
         self.orientation = 0
 
         self.sensors = [Sensor(i * 30, self) for i in range(12)]
@@ -55,6 +56,9 @@ class Robot:
         self.orientation += omega * dt
         self.orientation %= (2 * math.pi)
 
+        #Update direction (1: forward/stationary, -1: backward)
+        self.direction = math.copysign(1, v)
+
         #Initial movement calculation
         dx = v * dt * math.cos(self.orientation)
         dy = v * dt * math.sin(self.orientation)
@@ -68,7 +72,7 @@ class Robot:
         for wall in walls:
             wall_line = LineString([(wall.x1, wall.y1), (wall.x2, wall.y2)])
             if movement_line.intersects(wall_line):
-                movement_vector = (self.power * math.cos(self.orientation), self.power * math.sin(self.orientation))
+                movement_vector = (self.direction * self.power * math.cos(self.orientation), self.direction * self.power * math.sin(self.orientation))
                 wall_vector = (wall.x2 - wall.x1, wall.y2 - wall.y1)
                 wall_vector_normalized = (
                     wall_vector[0] / math.hypot(wall_vector[0], wall_vector[1]),
