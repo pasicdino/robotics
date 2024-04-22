@@ -42,7 +42,7 @@ def engine_control():
         if event.type == pygame.QUIT:
             running = False
 
-        # Control engine using NUMPAD: we can go forward and backward for each motor so take 4,1 as forward/backward for left motor and 6,3 for right motor
+        #Control engine using NUMPAD: we can go forward and backward for each motor so take 4,1 as forward/backward for left motor and 6,3 for right motor
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_KP4:
                 robot.left_motor(True, True)  # Turn on left motor FORWARD
@@ -60,13 +60,13 @@ def engine_control():
 
 
 def draw_walls():
-    # Redraw map
+    #Redraw map
     for wall in map.walls:
         pygame.draw.line(screen, BLACK, (wall.x1, wall.y1), (wall.x2, wall.y2), 2)
 
 
 def draw_robot():
-    # Draw robot + line indicating forward
+    #Draw robot + line indicating forward
     pygame.draw.circle(screen, RED, (int(robot.x), HEIGHT - int(robot.y)), robot.radius)
     end_x = robot.x + robot.radius * math.cos(robot.orientation)
     end_y = HEIGHT - (robot.y + robot.radius * math.sin(robot.orientation))
@@ -74,7 +74,7 @@ def draw_robot():
 
 
 def draw_sensors():
-    # Draw sensor lines + distance text
+    #Draw sensor lines + distance text
     for sensor in robot.sensors:
         if sensor_lines_visible:
             pygame.draw.line(screen, GREEN, (int(sensor.start_coord[0]), HEIGHT - int(sensor.start_coord[1])),
@@ -100,7 +100,7 @@ def draw_motor_values():
 
 
 def draw_force_vector():
-    # Draw force vector
+    #Draw force vector
     if force_vector_visible:
         force_scale = 1
         force_end_x = robot.x + robot.velocity_vector[0] * force_scale

@@ -17,7 +17,7 @@ class Robot:
         self.v_right = 0
         self.v_left = 0
 
-        self.direction = 0          # indicates direction of movement (1: forward/stationary, -1: backward)
+        self.direction = 0          #indicates direction of movement (1: forward/stationary, -1: backward)
         self.orientation = 0
 
         self.sensors = [Sensor(i * 30, self) for i in range(12)]
