@@ -26,9 +26,8 @@ clock = pygame.time.Clock()
 #Init map, and robot
 map = Map()
 map.add_hexagon_walls(WIDTH // 2, HEIGHT // 2, 300)
+map.extract_features()
 robot = Robot(WIDTH // 2, HEIGHT // 2, 100)
-
-
 
 
 #Enable or disable force vector sensor, sensor value, and motor value visibility
@@ -63,6 +62,11 @@ def draw_walls():
     #Redraw map
     for wall in map.walls:
         pygame.draw.line(screen, BLACK, (wall.x1, wall.y1), (wall.x2, wall.y2), 2)
+
+def draw_features():
+    #Draw small black circle on each feature position
+    for feature in map.features:
+        pygame.draw.circle(screen, BLACK, (feature.x, feature.y), feature.radius, 0)
 
 
 def draw_robot():
@@ -107,6 +111,10 @@ def draw_force_vector():
         force_end_y = HEIGHT - (robot.y + robot.velocity_vector[1] * force_scale)
         pygame.draw.line(screen, BLUE, (int(robot.x), HEIGHT - int(robot.y)), (int(force_end_x), int(force_end_y)), 2)
 
+def draw_feature_lines(detected_features):
+    for feature in detected_features:
+        pygame.draw.line(screen, GREEN, (int(feature.x), HEIGHT - int(feature.y)), ((int(robot.x), int(HEIGHT - robot.y))), 1)
+
 
 while running:
     #limit framerate
@@ -115,11 +123,13 @@ while running:
     engine_control()
     robot.update(dt, map.walls)
     robot.update_sensors(map.walls)
-
+    detected_features = robot.sense_features(map.features)
 
     screen.fill(WHITE)
 
     draw_walls()
+    draw_features()
+    draw_feature_lines(detected_features)
     draw_robot()
     draw_sensors()
     draw_motor_values()

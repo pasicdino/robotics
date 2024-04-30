@@ -1,5 +1,5 @@
 import math
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 class Map:
     class Wall:
@@ -28,9 +28,18 @@ class Map:
                 wall_vector[1] / math.hypot(wall_vector[0], wall_vector[1])
             )
             return wall_vector_normalized
+        
+    class Feature:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+            self.point = Point((x, y))
+
+            self.radius = 5
 
     def __init__(self):
         self.walls = []
+        self.features = []
 
     def add_wall(self, x1, y1, x2, y2):
         self.walls.append(self.Wall(x1, y1, x2, y2))
@@ -57,3 +66,16 @@ class Map:
             x1, y1 = points[i]
             x2, y2 = points[(i + 1) % 6]
             self.add_wall(x1, y1, x2, y2)
+
+    #Extracts map features/landmarks using vertices of wall lines
+    def extract_features(self):
+        existing_features = []
+        for wall in self.walls:
+            if (wall.x1, wall.y1) not in existing_features:
+                existing_features.append((wall.x1, wall.y1))
+                self.features.append(self.Feature(wall.x1, wall.y1))
+            if (wall.x2, wall.y2) not in existing_features:
+                existing_features.append((wall.x2, wall.y2))
+                self.features.append(self.Feature(wall.x2, wall.y2))       
+
+            

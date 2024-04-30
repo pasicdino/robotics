@@ -23,6 +23,8 @@ class Robot:
         self.sensors = [Sensor(i * 30, self) for i in range(12)]
         self.sensor_distances = [0]*12
 
+        self.feature_sensor_length = 120
+
         self.collision_margin = 0.001
         self.velocity_vector = (0, 0)
 
@@ -104,3 +106,11 @@ class Robot:
     def is_collision(self):
         collision = any(x<=0 for x in self.sensor_distances)
         return collision
+    
+    #Detects features within omni-sensor range
+    def sense_features(self, map_features):
+        detected_features = []
+        for feature in map_features:
+            if Point(self.x, self.y).distance(feature.point) < self.feature_sensor_length:
+                detected_features.append(feature)
+        return detected_features
