@@ -70,17 +70,11 @@ class Robot:
 
         #Detect initial collision, also decomposes the vector
         for wall in walls:
-            wall_line = LineString([(wall.x1, wall.y1), (wall.x2, wall.y2)])
-            if movement_line.intersects(wall_line):
+            if movement_line.intersects(wall.line):
                 movement_vector = (self.direction * self.power * math.cos(self.orientation), self.direction * self.power * math.sin(self.orientation))
-                wall_vector = (wall.x2 - wall.x1, wall.y2 - wall.y1)
-                wall_vector_normalized = (
-                    wall_vector[0] / math.hypot(wall_vector[0], wall_vector[1]),
-                    wall_vector[1] / math.hypot(wall_vector[0], wall_vector[1])
-                )
-                dot_product = movement_vector[0] * wall_vector_normalized[0] + movement_vector[1] * \
-                              wall_vector_normalized[1]
-                parallel_component = (dot_product * wall_vector_normalized[0], dot_product * wall_vector_normalized[1])
+                dot_product = movement_vector[0] * wall.vector_normalized[0] + movement_vector[1] * \
+                              wall.vector_normalized[1]
+                parallel_component = (dot_product * wall.vector_normalized[0], dot_product * wall.vector_normalized[1])
                 dx = parallel_component[0] * dt
                 dy = parallel_component[1] * dt
                 proposed_x = self.x + dx
@@ -92,8 +86,7 @@ class Robot:
 
         #Secondary collision check to ensure that the parallel component will not lead to penetrating walls
         for wall in walls:
-            wall_line = LineString([(wall.x1, wall.y1), (wall.x2, wall.y2)])
-            if movement_line.intersects(wall_line):
+            if movement_line.intersects(wall.line):
                 proposed_x = self.x
                 proposed_y = self.y
                 break

@@ -1,4 +1,5 @@
 import math
+from shapely.geometry import LineString
 
 class Map:
     class Wall:
@@ -7,6 +8,8 @@ class Map:
             self.y1 = y1
             self.x2 = x2
             self.y2 = y2
+            self.line = LineString([(x1, y1), (x2, y2)])
+            self.vector_normalized = self.normalize_wall_vector()
             self.angle = self.calculate_angle()
 
         #Neccessary for vector decomposition
@@ -16,6 +19,15 @@ class Map:
             else:
                 angle = math.atan2(self.y2 - self.y1, self.x2 - self.x1)
                 return angle if angle >= 0 else angle + 2 * math.pi
+            
+        #Calculate normalized vector of wall for collision handling
+        def normalize_wall_vector(self):
+            wall_vector = (self.x2 - self.x1, self.y2 - self.y1)
+            wall_vector_normalized = (
+                wall_vector[0] / math.hypot(wall_vector[0], wall_vector[1]),
+                wall_vector[1] / math.hypot(wall_vector[0], wall_vector[1])
+            )
+            return wall_vector_normalized
 
     def __init__(self):
         self.walls = []
