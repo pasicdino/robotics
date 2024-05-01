@@ -1,6 +1,5 @@
 import math
 from shapely.geometry import LineString, Point
-from shapely.ops import nearest_points
 
 from Sensor import Sensor
 
@@ -24,8 +23,8 @@ class Robot:
         self.sensor_distances = [0]*12
 
         self.feature_sensor_length = 120
+        self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [tuple(feature, distance)]
 
-        self.collision_margin = 0.001
         self.velocity_vector = (0, 0)
 
     def right_motor(self, boolean, forward):
@@ -109,8 +108,8 @@ class Robot:
     
     #Detects features within omni-sensor range
     def sense_features(self, map_features):
-        detected_features = []
+        self.detected_features = []
         for feature in map_features:
-            if Point(self.x, self.y).distance(feature.point) < self.feature_sensor_length:
-                detected_features.append(feature)
-        return detected_features
+            distance = Point(self.x, self.y).distance(feature.point)
+            if distance < self.feature_sensor_length:
+                self.detected_features.append((feature, distance))

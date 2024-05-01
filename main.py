@@ -113,7 +113,10 @@ def draw_force_vector():
 
 def draw_feature_lines(detected_features):
     for feature in detected_features:
-        pygame.draw.line(screen, GREEN, (int(feature.x), HEIGHT - int(feature.y)), ((int(robot.x), int(HEIGHT - robot.y))), 1)
+        pygame.draw.line(screen, GREEN, (int(feature[0].x), HEIGHT - int(feature[0].y)), ((int(robot.x), int(HEIGHT - robot.y))), 1)
+        distance_text = font.render(str(int(feature[1])), True, BLACK)
+        text_rect = distance_text.get_rect(center=(int((feature[0].x + robot.x)/2), HEIGHT - int((feature[0].y + robot.y)/2)))
+        screen.blit(distance_text, text_rect)
 
 
 while running:
@@ -123,13 +126,13 @@ while running:
     engine_control()
     robot.update(dt, map.walls)
     robot.update_sensors(map.walls)
-    detected_features = robot.sense_features(map.features)
+    robot.sense_features(map.features)
 
     screen.fill(WHITE)
 
     draw_walls()
     draw_features()
-    draw_feature_lines(detected_features)
+    draw_feature_lines(robot.detected_features)
     draw_robot()
     draw_sensors()
     draw_motor_values()
