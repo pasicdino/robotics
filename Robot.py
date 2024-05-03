@@ -1,7 +1,7 @@
 import math
 from shapely.geometry import LineString, Point
 
-from Sensor import Sensor
+from Sensor import WallSensor, FeatureSensor
 
 class Robot:
 
@@ -18,11 +18,11 @@ class Robot:
         self.direction = 0          #indicates direction of movement (1: forward/stationary, -1: backward)
         self.orientation = 0
 
-        self.sensors = [Sensor(i * 30, self) for i in range(12)]
+        self.sensors = [WallSensor(i * 30, self) for i in range(12)]
         self.sensor_distances = [0]*12
 
-        self.feature_sensor_length = 300
-        self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [tuple(feature, distance, bearing)]
+        self.feature_sensor = FeatureSensor(200, self)
+        self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [[distance, bearing, feature]]
 
         self.velocity_vector = (0, 0)
 
@@ -102,6 +102,9 @@ class Robot:
             sensor.update_lines()   #update sensor line positions
             sensor.check_intersect(walls)   #check for intersections with walls
             self.sensor_distances[idx] = sensor.distance    #add distance of sensor to distance array for ANN
+
+    def update_feature_sensors(self, map_walls, map_features):
+        self.detected_features = self.feature_sensor.sense_features(map_walls, map_features)
 
     def is_collision(self):
         collision = any(x<=0 for x in self.sensor_distances)

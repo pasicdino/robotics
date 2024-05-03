@@ -125,16 +125,16 @@ def draw_force_vector():
 def draw_feature_lines(detected_features):
     #Draw lines between feature and robot when inside sensor range
     for feature in detected_features:
-        pygame.draw.line(screen, GREEN, (int(feature[0].x), HEIGHT - int(feature[0].y)), ((int(robot.x), int(HEIGHT - robot.y))), 1)
+        pygame.draw.line(screen, GREEN, (int(feature[2].x), HEIGHT - int(feature[2].y)), ((int(robot.x), int(HEIGHT - robot.y))), 1)
         #shows feature distance [debugging]
         if feature_distance_visible:
-            distance_text = font.render(str(int(feature[1])), True, BLACK)
-            distance_text_rect = distance_text.get_rect(midbottom=(int((feature[0].x + robot.x)/2), HEIGHT - int((feature[0].y + robot.y)/2)))
+            distance_text = font.render(str(int(feature[0])), True, BLACK)
+            distance_text_rect = distance_text.get_rect(midbottom=(int((feature[2].x + robot.x)/2), HEIGHT - int((feature[2].y + robot.y)/2)))
             screen.blit(distance_text, distance_text_rect)
         #shows relative feature bearing [debugging]
         if feature_bearing_visible:
-            bearing_text = font.render(str(int(feature[2])) + "°", True, RED)
-            bearing_text_rect = bearing_text.get_rect(midtop=(int((feature[0].x + robot.x)/2), HEIGHT - int((feature[0].y + robot.y)/2)))
+            bearing_text = font.render(str(int(feature[1])) + "°", True, RED)
+            bearing_text_rect = bearing_text.get_rect(midtop=(int((feature[2].x + robot.x)/2), HEIGHT - int((feature[2].y + robot.y)/2)))
             screen.blit(bearing_text, bearing_text_rect)
 
 while running:
@@ -145,7 +145,7 @@ while running:
 
     robot.update(dt, map.walls)
     robot.update_sensors(map.walls)
-    robot.sense_features(map.features)
+    robot.update_feature_sensors(map.walls, map.features)
 
     screen.fill(WHITE)
 

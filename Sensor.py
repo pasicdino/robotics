@@ -1,8 +1,8 @@
 import math
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 
 
-class Sensor:
+class WallSensor:
     def __init__(self, degrees, robot):
         self.angle = math.radians(degrees)  
         self.robot = robot
@@ -59,3 +59,29 @@ class Sensor:
         return math.sqrt((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)
             
 
+class FeatureSensor:
+    def __init__(self, sensor_length, robot):
+        self.robot = robot
+
+        self.length = sensor_length
+        #self.detected_features = []
+
+    def sense_features(self, map_walls, map_features):
+        detected_features = []
+        for feature_idx, feature in enumerate(map_features):
+            robot_position = Point(self.robot.x, self.robot.y)
+            exact_distance = robot_position.distance(feature.point)
+            if exact_distance < self.length:
+                if self.check_intersect(feature, map_walls):
+                    vector = (feature.x - self.robot.x, feature.y - self.robot.y)
+                    relative_bearing = math.degrees(math.atan2(vector[0], vector[1]) - self.robot.orientation) % 360
+                    detected_features.append([exact_distance, relative_bearing, feature])
+        return detected_features
+
+    def check_intersect(self, feature, map_walls):
+        line_of_sight = LineString([(self.robot.x, self.robot.y),(feature.x, feature.y)])
+        for wall in map_walls:
+            if not feature.point.intersection(wall.line):
+                if line_of_sight.intersection(wall.line):
+                    return False
+        return True
