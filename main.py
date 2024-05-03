@@ -27,7 +27,7 @@ running = True
 clock = pygame.time.Clock()
 
 #Init map, and robot
-map = Map()
+map = Map(WIDTH, HEIGHT)
 map.add_hexagon_walls(WIDTH // 2, HEIGHT // 2, 300)
 map.extract_features()
 robot = Robot(WIDTH // 2, HEIGHT // 2, 100)

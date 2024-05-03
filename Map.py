@@ -37,12 +37,14 @@ class Map:
 
             self.radius = 5
 
-    def __init__(self):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
         self.walls = []
         self.features = []
 
     def add_wall(self, x1, y1, x2, y2):
-        self.walls.append(self.Wall(x1, y1, x2, y2))
+        self.walls.append(self.Wall(x1, self.height - y1, x2, self.height - y2))
 
     def add_square_walls(self, x, y, size):
         self.add_wall(x, y, x + size, y)
