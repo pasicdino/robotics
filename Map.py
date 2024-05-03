@@ -1,4 +1,5 @@
 import math
+from shapely.geometry import LineString, Point
 
 class Map:
     class Wall:
@@ -7,6 +8,8 @@ class Map:
             self.y1 = y1
             self.x2 = x2
             self.y2 = y2
+            self.line = LineString([(x1, y1), (x2, y2)])
+            self.vector_normalized = self.normalize_wall_vector()
             self.angle = self.calculate_angle()
 
         #Neccessary for vector decomposition
@@ -16,12 +19,32 @@ class Map:
             else:
                 angle = math.atan2(self.y2 - self.y1, self.x2 - self.x1)
                 return angle if angle >= 0 else angle + 2 * math.pi
+            
+        #Calculate normalized vector of wall for collision handling
+        def normalize_wall_vector(self):
+            wall_vector = (self.x2 - self.x1, self.y2 - self.y1)
+            wall_vector_normalized = (
+                wall_vector[0] / math.hypot(wall_vector[0], wall_vector[1]),
+                wall_vector[1] / math.hypot(wall_vector[0], wall_vector[1])
+            )
+            return wall_vector_normalized
+        
+    class Feature:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+            self.point = Point((x, y))
 
-    def __init__(self):
+            self.radius = 5
+
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
         self.walls = []
+        self.features = []
 
     def add_wall(self, x1, y1, x2, y2):
-        self.walls.append(self.Wall(x1, y1, x2, y2))
+        self.walls.append(self.Wall(x1, self.height - y1, x2, self.height - y2))
 
     def add_square_walls(self, x, y, size):
         self.add_wall(x, y, x + size, y)
@@ -60,3 +83,16 @@ class Map:
             x1, y1 = points[i]
             x2, y2 = points[(i + 1) % 6]
             self.add_wall(x1, y1, x2, y2)
+
+    #Extracts map features/landmarks using vertices of wall lines
+    def extract_features(self):
+        existing_features = []
+        for wall in self.walls:
+            if (wall.x1, wall.y1) not in existing_features:
+                existing_features.append((wall.x1, wall.y1))
+                self.features.append(self.Feature(wall.x1, wall.y1))
+            if (wall.x2, wall.y2) not in existing_features:
+                existing_features.append((wall.x2, wall.y2))
+                self.features.append(self.Feature(wall.x2, wall.y2))       
+
+            
