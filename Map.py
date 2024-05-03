@@ -29,6 +29,21 @@ class Map:
         self.add_wall(x, y, x, y + size)
         self.add_wall(x + size, y, x + size, y + size)
 
+    def populate_map(self, WIDTH, HEIGHT):
+        self.add_square_walls(WIDTH*0.1, HEIGHT*0.1, HEIGHT*0.8)
+        self.add_wall(WIDTH * 0.1, WIDTH * 0.2, HEIGHT * 0.3, HEIGHT * 0.2)
+        self.add_wall(WIDTH * 0.3, HEIGHT * 0.5, WIDTH * 0.5, HEIGHT * 0.5)
+        self.add_wall(WIDTH * 0.6, HEIGHT * 0.7, WIDTH * 0.9, HEIGHT * 0.7)
+        self.add_wall(WIDTH * 0.2, HEIGHT * 0.6, WIDTH * 0.2, HEIGHT * 0.9)
+        self.add_wall(WIDTH * 0.8, HEIGHT * 0.1, WIDTH * 0.8, HEIGHT * 0.6)
+        self.add_wall(WIDTH * 0.4, HEIGHT * 0.2, WIDTH * 0.7, HEIGHT * 0.2)
+        self.add_wall(WIDTH * 0.5, HEIGHT * 0.4, WIDTH * 0.5, HEIGHT * 0.7)
+        self.add_wall(WIDTH * 0.7, HEIGHT * 0.3, WIDTH * 0.7, HEIGHT * 0.6)
+        self.add_wall(WIDTH * 0.1, HEIGHT * 0.9, WIDTH * 0.4, HEIGHT * 0.9)
+        self.add_wall(WIDTH * 0.5, HEIGHT * 0.1, WIDTH * 0.8, HEIGHT * 0.1)
+        self.add_wall(WIDTH * 0.3, HEIGHT * 0.2, WIDTH * 0.3, HEIGHT * 0.5)
+
+
     def add_hexagon_walls(self, center_x, center_y, size):
         #1/6th of a circle
         angle_step = math.pi / 3

@@ -25,14 +25,18 @@ clock = pygame.time.Clock()
 
 #Init map, and robot
 map = Map()
-map.add_hexagon_walls(WIDTH // 2, HEIGHT // 2, 300)
-robot = Robot(WIDTH // 2, HEIGHT // 2, 100)
+map.populate_map(WIDTH, HEIGHT)
+
+
+
+
+robot = Robot(WIDTH*0.15, HEIGHT*0.85, 100, HEIGHT)
 
 
 
 
 #Enable or disable force vector sensor, sensor value, and motor value visibility
-force_vector_visible = False
+force_vector_visible = True
 sensor_lines_visible = False
 sensor_values_always_visible = False
 
@@ -113,6 +117,7 @@ while running:
     dt = clock.tick(FPS) / 1000.0
 
     engine_control()
+
     robot.update(dt, map.walls)
     robot.update_sensors(map.walls)
 

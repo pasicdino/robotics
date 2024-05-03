@@ -7,7 +7,7 @@ from Sensor import Sensor
 
 class Robot:
 
-    def __init__(self, x, y, power):
+    def __init__(self, x, y, power, HEIGHT):
         self.radius = 20
         self.x = x
         self.y = y
@@ -25,6 +25,8 @@ class Robot:
 
         self.collision_margin = 0.001
         self.velocity_vector = (0, 0)
+
+        self.HEIGHT = HEIGHT
 
     def right_motor(self, boolean, forward):
         if boolean:
@@ -70,7 +72,7 @@ class Robot:
 
         #Detect initial collision, also decomposes the vector
         for wall in walls:
-            wall_line = LineString([(wall.x1, wall.y1), (wall.x2, wall.y2)])
+            wall_line = LineString([(wall.x1, self.HEIGHT - wall.y1), (wall.x2, self.HEIGHT - wall.y2)])
             if movement_line.intersects(wall_line):
                 movement_vector = (self.direction * self.power * math.cos(self.orientation), self.direction * self.power * math.sin(self.orientation))
                 wall_vector = (wall.x2 - wall.x1, wall.y2 - wall.y1)
@@ -92,7 +94,7 @@ class Robot:
 
         #Secondary collision check to ensure that the parallel component will not lead to penetrating walls
         for wall in walls:
-            wall_line = LineString([(wall.x1, wall.y1), (wall.x2, wall.y2)])
+            wall_line = LineString([(wall.x1, self.HEIGHT - wall.y1), (wall.x2, self.HEIGHT - wall.y2)])
             if movement_line.intersects(wall_line):
                 proposed_x = self.x
                 proposed_y = self.y
