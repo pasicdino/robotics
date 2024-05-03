@@ -1,5 +1,7 @@
 import math
+import numpy as np
 from shapely.geometry import LineString, Point
+
 
 from Sensor import Sensor
 
@@ -22,8 +24,8 @@ class Robot:
         self.sensors = [Sensor(i * 30, self) for i in range(12)]
         self.sensor_distances = [0]*12
 
-        self.feature_sensor_length = 120
-        self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [tuple(feature, distance)]
+        self.feature_sensor_length = 300
+        self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [tuple(feature, distance, bearing)]
 
         self.velocity_vector = (0, 0)
 
@@ -106,10 +108,14 @@ class Robot:
         collision = any(x<=0 for x in self.sensor_distances)
         return collision
     
-    #Detects features within omni-sensor range
+    #Detects features within omni-sensor range and calculates distance + relative bearing
     def sense_features(self, map_features):
         self.detected_features = []
         for feature in map_features:
-            distance = Point(self.x, self.y).distance(feature.point)
-            if distance < self.feature_sensor_length:
-                self.detected_features.append((feature, distance))
+            exact_distance = Point(self.x, self.y).distance(feature.point)
+            if exact_distance < self.feature_sensor_length:
+                vector = (feature.x - self.x, feature.y - self.y)
+                relative_bearing = math.degrees(math.atan2(vector[0], vector[1]) - self.orientation) % 360
+                self.detected_features.append((feature, exact_distance, relative_bearing))
+
+
