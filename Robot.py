@@ -10,7 +10,7 @@ class Robot:
         self.x = x
         self.y = y
         self.power = power
-
+        self.path  = [(x,y)]
         #indicating the motor speed values
         self.v_right = 0
         self.v_left = 0
@@ -94,6 +94,8 @@ class Robot:
         self.x = proposed_x
         self.y = proposed_y
         self.velocity_vector = (dx / dt, dy / dt)
+
+        self.path.append((self.x, self.y))
 
     def update_sensors(self, walls):
         for idx, sensor in enumerate(self.wall_sensors):

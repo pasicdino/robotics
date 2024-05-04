@@ -137,10 +137,23 @@ def draw_feature_lines(detected_features):
             bearing_text_rect = bearing_text.get_rect(midtop=(int((feature[2].x + robot.x)/2), HEIGHT - int((feature[2].y + robot.y)/2)))
             screen.blit(bearing_text, bearing_text_rect)
 
+def draw_path(path, color):
+    if len(path) > 1:
+        for i in range(len(path) - 1):
+            start_point = path[i]
+            end_point = path[i + 1]
+            pygame.draw.line(screen, color, (start_point[0], HEIGHT - start_point[1]),
+                             (end_point[0], HEIGHT - end_point[1]), 2)
+
+
+
+
+count=0
 while running:
     #limit framerate
     dt = clock.tick(FPS) / 1000.0
-
+    print(count)
+    count+=1
     engine_control()
 
     robot.update(dt, map.walls)
@@ -156,7 +169,7 @@ while running:
     draw_sensors()
     draw_motor_values()
     draw_force_vector()
-
+    draw_path(robot.path, BLUE)
     pygame.display.flip()
 
 pygame.quit()
