@@ -62,22 +62,22 @@ class WallSensor:
 class FeatureSensor:
     def __init__(self, sensor_length, robot):
         self.robot = robot
-
         self.length = sensor_length
-        #self.detected_features = []
 
+    #Senses for features within sensor range and calculates relative bearing
     def sense_features(self, map_walls, map_features):
         detected_features = []
         for feature_idx, feature in enumerate(map_features):
-            robot_position = Point(self.robot.x, self.robot.y)
-            exact_distance = robot_position.distance(feature.point)
+            exact_distance = Point(self.robot.x, self.robot.y).distance(feature.point)  #Distance between robot and feature
             if exact_distance < self.length:
                 if self.check_intersect(feature, map_walls):
                     vector = (feature.x - self.robot.x, feature.y - self.robot.y)
-                    relative_bearing = math.degrees(math.atan2(vector[0], vector[1]) - self.robot.orientation) % 360
+                    bearing = math.atan2(vector[0], vector[1])  #Bearing relative to map perspective (in radians)
+                    relative_bearing = (math.degrees(bearing + self.robot.orientation - math.pi/2)) % 360 #Bearing relative to robot orientation (-π/2 offset)
                     detected_features.append([exact_distance, relative_bearing, feature])
         return detected_features
 
+    #Checks if line of sight from robot to detected feature is intersected by wall
     def check_intersect(self, feature, map_walls):
         line_of_sight = LineString([(self.robot.x, self.robot.y),(feature.x, feature.y)])
         for wall in map_walls:

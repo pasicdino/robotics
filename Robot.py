@@ -18,15 +18,13 @@ class Robot:
         self.direction = 0          #indicates direction of movement (1: forward/stationary, -1: backward)
         self.orientation = 0
 
-        self.sensors = [WallSensor(i * 30, self) for i in range(12)]
-        self.sensor_distances = [0]*12
+        self.wall_sensors = [WallSensor(i * 30, self) for i in range(12)]
+        self.wall_sensor_distances = [0]*12
 
         self.feature_sensor = FeatureSensor(200, self)
         self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [[distance, bearing, feature]]
 
         self.velocity_vector = (0, 0)
-
-        self.HEIGHT = HEIGHT
 
     def right_motor(self, boolean, forward):
         if boolean:
@@ -98,16 +96,16 @@ class Robot:
         self.velocity_vector = (dx / dt, dy / dt)
 
     def update_sensors(self, walls):
-        for idx, sensor in enumerate(self.sensors):
+        for idx, sensor in enumerate(self.wall_sensors):
             sensor.update_lines()   #update sensor line positions
             sensor.check_intersect(walls)   #check for intersections with walls
-            self.sensor_distances[idx] = sensor.distance    #add distance of sensor to distance array for ANN
+            self.wall_sensor_distances[idx] = sensor.distance    #add distance of sensor to distance array for ANN
 
     def update_feature_sensors(self, map_walls, map_features):
         self.detected_features = self.feature_sensor.sense_features(map_walls, map_features)
 
     def is_collision(self):
-        collision = any(x<=0 for x in self.sensor_distances)
+        collision = any(x<=0 for x in self.wall_sensor_distances)
         return collision
     
     #Detects features within omni-sensor range and calculates distance + relative bearing
