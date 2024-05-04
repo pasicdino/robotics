@@ -31,27 +31,26 @@ class KalmanFilter:
         self.covariance = F @ self.covariance @ F.T + self.process_noise
 
     def update(self, measurements):
-        for distance, bearing, feature_id in measurements:
-            # Check if the feature ID is in the map features to handle measurements correctly
-            if feature_id in self.map.features:
-                feature_x, feature_y = self.robot.map.features[feature_id]
-                expected_distance, expected_bearing = self.calculate_expected_measurement(feature_x, feature_y)
-                z_res = np.array([distance - expected_distance, bearing - expected_bearing])
+        for distance, bearing, feature in measurements:
 
-                # Measurement matrix
-                H = np.array([[1, 0, 0], [0, 1, 0]])
+            feature_x, feature_y = feature[0], feature[1]
+            expected_distance, expected_bearing = self.calculate_expected_measurement(feature_x, feature_y)
+            z_res = np.array([distance - expected_distance, bearing - expected_bearing])
 
-                # Compute the residual covariance
-                S = H @ self.covariance @ H.T + self.measurement_noise
+            # Measurement matrix
+            H = np.array([[1, 0, 0], [0, 1, 0]])
 
-                # Calculate Kalman gain
-                K = self.covariance @ H.T @ np.linalg.inv(S)
+            # Compute the residual covariance
+            S = H @ self.covariance @ H.T + self.measurement_noise
 
-                # Update the state with the new measurement
-                self.state += K @ z_res
+            # Calculate Kalman gain
+            K = self.covariance @ H.T @ np.linalg.inv(S)
 
-                # Update the covariance
-                self.covariance = (np.eye(len(self.state)) - K @ H) @ self.covariance
+            # Update the state with the new measurement
+            self.state += K @ z_res
+
+            # Update the covariance
+            self.covariance = (np.eye(len(self.state)) - K @ H) @ self.covariance
 
 
         self.path.append((self.state[0], self.state[1]))
