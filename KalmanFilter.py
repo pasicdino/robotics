@@ -1,12 +1,14 @@
 import numpy as np
 
 class KalmanFilter:
-    def __init__(self, initial_state, initial_covariance, process_noise, measurement_noise, robot):
+    def __init__(self, initial_state, initial_covariance, process_noise, measurement_noise, robot, map):
         self.state = np.array(initial_state)  # State should typically include [x, y, orientation]
         self.covariance = np.array(initial_covariance)  # Initial covariance matrix
         self.process_noise = process_noise  # Process noise covariance matrix
         self.measurement_noise = measurement_noise  # Measurement noise covariance matrix
+        self.path = [(self.state[0], self.state[1])]
         self.robot = robot  # Reference to the robot object, assuming it holds map information
+        self.map = map
 
     def predict(self, control_input, dt):
         x, y, theta = self.state
@@ -23,15 +25,16 @@ class KalmanFilter:
         theta = (theta + dtheta) % (2 * np.pi)  # Normalize orientation
 
         self.state = np.array([x, y, theta])
-
+        self.path.append((self.state[0], self.state[1]))
         # Update covariance with the new Jacobian of the motion model
         F = np.array([[1, 0, -dy], [0, 1, dx], [0, 0, 1]])
         self.covariance = F @ self.covariance @ F.T + self.process_noise
 
+
     def update(self, measurements):
         for distance, bearing, feature_id in measurements:
             # Check if the feature ID is in the map features to handle measurements correctly
-            if feature_id in self.robot.map.features:
+            if feature_id in self.map.features:
                 feature_x, feature_y = self.robot.map.features[feature_id]
                 expected_distance, expected_bearing = self.calculate_expected_measurement(feature_x, feature_y)
                 z_res = np.array([distance - expected_distance, bearing - expected_bearing])
@@ -50,8 +53,9 @@ class KalmanFilter:
 
                 # Update the covariance
                 self.covariance = (np.eye(len(self.state)) - K @ H) @ self.covariance
-            else:
-                print(f"Feature ID {feature_id} not found in the map's features.")
+
+
+
 
     def calculate_expected_measurement(self, feature_x, feature_y):
         # Calculate expected measurement based on the current state

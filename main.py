@@ -2,6 +2,8 @@ import pygame
 import math
 from Robot import Robot
 from Map import Map
+import numpy as np
+from KalmanFilter import KalmanFilter
 
 pygame.init()
 
@@ -31,6 +33,16 @@ map = Map(WIDTH, HEIGHT)
 map.populate_map(WIDTH, HEIGHT)
 map.extract_features()
 robot = Robot(WIDTH*0.15, HEIGHT*0.85, 100, HEIGHT)
+
+# Initialize Kalman Filter
+initial_state = [robot.x, robot.y, robot.orientation]  # Assuming the robot's initial x, y, and orientation are set
+initial_covariance = np.eye(3) * 0.1  # Small initial uncertainty
+process_noise = np.diag([0.02, 0.02, np.deg2rad(0.5)])  # Process noise covariance matrix
+measurement_noise = np.diag([0.1, np.deg2rad(5)])  # Measurement noise covariance matrix
+
+kf = KalmanFilter(initial_state, initial_covariance, process_noise, measurement_noise, robot, map)
+
+
 
 #Enable or disable force vector sensor, sensor value, and motor value visibility
 force_vector_visible = False
@@ -148,20 +160,24 @@ def draw_path(path, color):
 
 
 
-count=0
 while running:
     #limit framerate
     dt = clock.tick(FPS) / 1000.0
-    print(count)
-    count+=1
     engine_control()
+
+    control_input = np.array([robot.v, robot.omega])
+    kf.predict(control_input, dt)
+
 
     robot.update(dt, map.walls)
     robot.update_sensors(map.walls)
     robot.update_feature_sensors(map.walls, map.features)
 
-    screen.fill(WHITE)
+    measurements = [(f[0], f[1], (f[2].x, f[2].y)) for f in robot.detected_features]
 
+    kf.update(measurements)
+
+    screen.fill(WHITE)
     draw_walls()
     draw_features()
     draw_feature_lines(robot.detected_features)
@@ -170,6 +186,7 @@ while running:
     draw_motor_values()
     draw_force_vector()
     draw_path(robot.path, BLUE)
+    draw_path(kf.path, RED)
     pygame.display.flip()
 
 pygame.quit()

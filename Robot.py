@@ -25,6 +25,8 @@ class Robot:
         self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [[distance, bearing, feature]]
 
         self.velocity_vector = (0, 0)
+        self.v = 0
+        self.omega = 0
 
     def right_motor(self, boolean, forward):
         if boolean:
@@ -50,7 +52,9 @@ class Robot:
 
         L = 2 * R
         omega = (self.v_right - self.v_left) / L
+        self.omega = omega
         v = (self.v_right + self.v_left) / 2
+        self.v = v
 
         #Update orientation
         self.orientation += omega * dt
@@ -118,6 +122,6 @@ class Robot:
             if exact_distance < self.feature_sensor_length:
                 vector = (feature.x - self.x, feature.y - self.y)
                 relative_bearing = math.degrees(math.atan2(vector[0], vector[1]) - self.orientation) % 360
-                self.detected_features.append((feature, exact_distance, relative_bearing))
+                self.detected_features.append((exact_distance, relative_bearing, feature))
 
 
