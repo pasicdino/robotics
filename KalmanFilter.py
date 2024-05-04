@@ -25,11 +25,10 @@ class KalmanFilter:
         theta = (theta + dtheta) % (2 * np.pi)  # Normalize orientation
 
         self.state = np.array([x, y, theta])
-        self.path.append((self.state[0], self.state[1]))
+
         # Update covariance with the new Jacobian of the motion model
         F = np.array([[1, 0, -dy], [0, 1, dx], [0, 0, 1]])
         self.covariance = F @ self.covariance @ F.T + self.process_noise
-
 
     def update(self, measurements):
         for distance, bearing, feature_id in measurements:
@@ -55,6 +54,7 @@ class KalmanFilter:
                 self.covariance = (np.eye(len(self.state)) - K @ H) @ self.covariance
 
 
+        self.path.append((self.state[0], self.state[1]))
 
 
     def calculate_expected_measurement(self, feature_x, feature_y):
