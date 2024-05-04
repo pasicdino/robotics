@@ -2,7 +2,7 @@ import numpy as np
 
 class KalmanFilter:
     def __init__(self, initial_state, initial_covariance, process_noise, measurement_noise, robot, map):
-        self.state = np.array(initial_state)  # State should typically include [x, y, orientation]
+        self.state = np.array(initial_state)  # State includes [x, y, orientation]
         self.covariance = np.array(initial_covariance)  # Initial covariance matrix
         self.process_noise = process_noise  # Process noise covariance matrix
         self.measurement_noise = measurement_noise  # Measurement noise covariance matrix
@@ -26,19 +26,22 @@ class KalmanFilter:
 
         self.state = np.array([x, y, theta])
 
-        # Update covariance with the new Jacobian of the motion model
-        F = np.array([[1, 0, -dy], [0, 1, dx], [0, 0, 1]])
+        # Update covariance with the correct Jacobian of the motion model
+        F = np.array([
+            [1, 0, -v * np.sin(theta) * dt],
+            [0, 1,  v * np.cos(theta) * dt],
+            [0, 0, 1]
+        ])
         self.covariance = F @ self.covariance @ F.T + self.process_noise
 
     def update(self, measurements):
         for distance, bearing, feature in measurements:
-
             feature_x, feature_y = feature[0], feature[1]
             expected_distance, expected_bearing = self.calculate_expected_measurement(feature_x, feature_y)
             z_res = np.array([distance - expected_distance, bearing - expected_bearing])
 
-            # Measurement matrix
-            H = np.array([[1, 0, 0], [0, 1, 0]])
+            # Calculate the correct Jacobian H for the measurement function
+            H = self.calculate_jacobian_H(feature_x, feature_y)
 
             # Compute the residual covariance
             S = H @ self.covariance @ H.T + self.measurement_noise
@@ -52,16 +55,27 @@ class KalmanFilter:
             # Update the covariance
             self.covariance = (np.eye(len(self.state)) - K @ H) @ self.covariance
 
-
         self.path.append((self.state[0], self.state[1]))
 
-
     def calculate_expected_measurement(self, feature_x, feature_y):
-        # Calculate expected measurement based on the current state
         x, y, theta = self.state
         dx = feature_x - x
         dy = feature_y - y
         distance = np.sqrt(dx**2 + dy**2)
         bearing = np.arctan2(dy, dx) - theta
-
         return distance, bearing
+
+    def calculate_jacobian_H(self, feature_x, feature_y):
+        x, y, theta = self.state
+        dx = feature_x - x
+        dy = feature_y - y
+        d_squared = dx**2 + dy**2
+        d = np.sqrt(d_squared)
+
+        H = np.zeros((2, 3))
+        H[0, 0] = -dx / d  # Partial derivative of distance with respect to x
+        H[0, 1] = -dy / d  # Partial derivative of distance with respect to y
+        H[1, 0] = dy / d_squared  # Partial derivative of bearing with respect to x
+        H[1, 1] = -dx / d_squared  # Partial derivative of bearing with respect to y
+        H[1, 2] = -1  # Partial derivative of bearing with respect to theta
+        return H
