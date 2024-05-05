@@ -1,9 +1,10 @@
 import pygame
 import math
+import numpy as np
+
+from KalmanFilter import KalmanFilter
 from Robot import Robot
 from Map import Map
-import numpy as np
-from KalmanFilter import KalmanFilter
 
 pygame.init()
 
@@ -67,7 +68,8 @@ def engine_control():
             if event.key == pygame.K_KP6:
                 robot.right_motor(True, True)  # Turn on right motor FORWARD
             if event.key == pygame.K_KP3:
-                robot.right_motor(True, False)  # Turn on right moto BACKWARD
+                robot.right_motor(True, False)  # Turn on right motor BACKWARD
+
         elif event.type == pygame.KEYUP:
             if event.key in [pygame.K_KP4, pygame.K_KP1]:
                 robot.left_motor(False, True)  # Turn off left_motor
@@ -145,7 +147,7 @@ def draw_feature_lines(detected_features):
             screen.blit(distance_text, distance_text_rect)
         #Draw relative feature bearing [debugging]
         if feature_bearing_visible:
-            bearing_text = font.render(str(int(feature[1])) + "°", True, RED)
+            bearing_text = font.render(str(int(math.degrees(feature[1]))) + "°", True, RED)
             bearing_text_rect = bearing_text.get_rect(midtop=(int((feature[2].x + robot.x)/2), HEIGHT - int((feature[2].y + robot.y)/2)))
             screen.blit(bearing_text, bearing_text_rect)
 
@@ -158,8 +160,6 @@ def draw_path(path, color):
                              (end_point[0], HEIGHT - end_point[1]), 2)
 
 
-
-
 while running:
     #limit framerate
     dt = clock.tick(FPS) / 1000.0
@@ -167,7 +167,6 @@ while running:
 
     control_input = np.array([robot.v, robot.omega])
     kf.predict(control_input, dt)
-
 
     robot.update(dt, map.walls)
     robot.update_sensors(map.walls)

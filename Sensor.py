@@ -1,7 +1,6 @@
 import math
 from shapely.geometry import LineString, Point
 
-
 class WallSensor:
     def __init__(self, degrees, robot):
         self.angle = math.radians(degrees)  
@@ -73,7 +72,7 @@ class FeatureSensor:
                 if self.check_intersect(feature, map_walls):
                     vector = (feature.x - self.robot.x, feature.y - self.robot.y)
                     bearing = math.atan2(vector[0], vector[1])  #Bearing relative to map perspective (in radians)
-                    relative_bearing = (math.degrees(bearing + self.robot.orientation - math.pi/2)) % 360 #Bearing relative to robot orientation (-π/2 offset)
+                    relative_bearing = (bearing + self.robot.orientation - math.pi/2) % 2*math.pi #Bearing relative to robot orientation (-π/2 offset)
                     detected_features.append([exact_distance, relative_bearing, feature])
         return detected_features
 

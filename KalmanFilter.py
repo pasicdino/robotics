@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class KalmanFilter:
     def __init__(self, initial_state, initial_covariance, process_noise, measurement_noise, robot, map):
@@ -12,6 +13,7 @@ class KalmanFilter:
 
     def predict(self, control_input, dt):
         x, y, theta = self.state
+
         v, omega = control_input
 
         # Predict new state based on the robot's control inputs
@@ -38,6 +40,7 @@ class KalmanFilter:
         for distance, bearing, feature in measurements:
             feature_x, feature_y = feature[0], feature[1]
             expected_distance, expected_bearing = self.calculate_expected_measurement(feature_x, feature_y)
+
             z_res = np.array([distance - expected_distance, bearing - expected_bearing])
 
             # Calculate the correct Jacobian H for the measurement function
