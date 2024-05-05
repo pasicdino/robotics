@@ -8,6 +8,9 @@ class KalmanFilter:
         self.process_noise = process_noise  # Process noise covariance matrix
         self.measurement_noise = measurement_noise  # Measurement noise covariance matrix
         self.path = [(self.state[0], self.state[1])]
+
+        self.covariance_history = []    # holds ellipse properties from covariance matrices - [(x, y), (major-axis, minor-axis, angle)]
+
         self.robot = robot  # Reference to the robot object, assuming it holds map information
         self.map = map
 
@@ -59,6 +62,10 @@ class KalmanFilter:
             self.covariance = (np.eye(len(self.state)) - K @ H) @ self.covariance
 
         self.path.append((self.state[0], self.state[1]))
+        
+        # every 100 steps: calculate covariance ellipse
+        if len(self.path) % 100 == 0:
+            self.covariance_history.append(((self.state[0], self.state[1]), self.calculate_covariance_ellipse(self.covariance)))
 
     def calculate_expected_measurement(self, feature_x, feature_y):
         x, y, theta = self.state
@@ -82,3 +89,17 @@ class KalmanFilter:
         H[1, 1] = -dx / d_squared  # Partial derivative of bearing with respect to y
         H[1, 2] = -1  # Partial derivative of bearing with respect to theta
         return H
+
+    def calculate_covariance_ellipse(self, covariance):
+        eigen_values, eigen_vectors = np.linalg.eigh(covariance)
+        eigen_values = np.flip(eigen_values, 0)     # flip to decreasing order
+        eigen_vectors = np.flip(eigen_vectors, 0)   # flip to decreasing order
+
+        # calculate major and minor axis of covariance ellipse
+        major_axis = 2 * np.sqrt(5.991 * eigen_values[0])
+        minor_axis = 2 * np.sqrt(5.991 * eigen_values[1])
+
+        # calculate angle of ellipse
+        ellipse_angle = np.degrees(np.arctan2(eigen_vectors[1,0], eigen_vectors[0,0]))
+
+        return major_axis, minor_axis, ellipse_angle

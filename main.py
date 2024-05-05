@@ -1,6 +1,7 @@
 import pygame
 import math
 import numpy as np
+import random
 
 from KalmanFilter import KalmanFilter
 from Robot import Robot
@@ -23,7 +24,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
-PURPLE = (160, 32, 240)
+PURPLE_ALPHA = (160, 32, 240, 75)
 YELLOW = (255, 255, 0)
 
 running = True
@@ -37,13 +38,12 @@ robot = Robot(WIDTH*0.15, HEIGHT*0.85, 100, HEIGHT)
 
 # Initialize Kalman Filter
 initial_state = [robot.x, robot.y, robot.orientation]  # Assuming the robot's initial x, y, and orientation are set
+initial_state = [random.randrange(WIDTH), random.randrange(HEIGHT), random.uniform(0, 2*math.pi)]
 initial_covariance = np.eye(3) * 0.1  # Small initial uncertainty
 process_noise = np.diag([0.02, 0.02, np.deg2rad(0.5)])  # Process noise covariance matrix
 measurement_noise = np.diag([0.1, np.deg2rad(5)])  # Measurement noise covariance matrix
 
 kf = KalmanFilter(initial_state, initial_covariance, process_noise, measurement_noise, robot, map)
-
-
 
 #Enable or disable force vector sensor, sensor value, and motor value visibility
 force_vector_visible = False
@@ -52,6 +52,7 @@ sensor_values_always_visible = False
 feature_distance_visible = True
 feature_bearing_visible = True
 robot_orientation_visible = True
+covariance_ellipse_visible = True
 
 def engine_control():
     global running
@@ -158,7 +159,21 @@ def draw_path(path, color):
             end_point = path[i + 1]
             pygame.draw.line(screen, color, (start_point[0], HEIGHT - start_point[1]),
                              (end_point[0], HEIGHT - end_point[1]), 2)
+            
+# draws intermediate estimates of position and covariance
+def draw_covariance_ellipse(covariance_history, scale_factor):
+    if len(covariance_history) > 0:
+        for ellipse in covariance_history:
 
+            x_axis = ellipse[1][0]*scale_factor
+            y_axis = ellipse[1][1]*scale_factor
+
+            ellipse_rect = pygame.Rect(0, 0, x_axis, y_axis)
+            ellipse_surface = pygame.Surface(ellipse_rect.size, pygame.SRCALPHA)
+            pygame.draw.ellipse(ellipse_surface, PURPLE_ALPHA, ellipse_rect)
+            rotated_surface = pygame.transform.rotate(ellipse_surface, ellipse[1][2])   # rotate ellipse using angle
+            blit_position = (ellipse[0][0] - x_axis / 2, HEIGHT - ellipse[0][1] - x_axis / 2)   # get center position of ellipse
+            screen.blit(rotated_surface, blit_position)
 
 while running:
     #limit framerate
@@ -166,6 +181,7 @@ while running:
     engine_control()
 
     control_input = np.array([robot.v, robot.omega])
+
     kf.predict(control_input, dt)
 
     robot.update(dt, map.walls)
@@ -186,6 +202,10 @@ while running:
     draw_force_vector()
     draw_path(robot.path, BLUE)
     draw_path(kf.path, RED)
+    if covariance_ellipse_visible:
+        draw_covariance_ellipse(kf.covariance_history, 20)
+
     pygame.display.flip()
+    pygame.display.update()
 
 pygame.quit()
