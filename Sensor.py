@@ -2,6 +2,9 @@ import math
 from shapely.geometry import LineString, Point
 
 class WallSensor:
+    # Author: Jannick Smeets
+    # Description: Class representing a sensor of the robot for detecting walls
+
     def __init__(self, degrees, robot):
         self.angle = math.radians(degrees)  
         self.robot = robot
@@ -59,6 +62,9 @@ class WallSensor:
             
 
 class FeatureSensor:
+    # Author: Jannick Smeets
+    # Description: Class representing the omni-directional sensor of the robot for detecting features
+
     def __init__(self, sensor_length, robot):
         self.robot = robot
         self.length = sensor_length

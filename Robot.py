@@ -1,9 +1,12 @@
 import math
+import random
 from shapely.geometry import LineString, Point
 
 from Sensor import WallSensor, FeatureSensor
 
 class Robot:
+    # Author: Dino Pasic, Jannick Smeets
+    # Description: Class representing the robot, holds motion and sensor control
 
     def __init__(self, x, y, power, HEIGHT):
         self.radius = 20
@@ -11,6 +14,7 @@ class Robot:
         self.y = y
         self.power = power
         self.path  = [(x,y)]
+
         #indicating the motor speed values
         self.v_right = 0
         self.v_left = 0
@@ -46,11 +50,12 @@ class Robot:
         else:
             self.v_left = 0
 
-
+    # Author: Dino Pasic
+    # Description: Updates the location and the orientation of the robot with collision handling
     def update(self, dt, walls):
         R = self.radius
-
         L = 2 * R
+
         omega = (self.v_right - self.v_left) / L
         self.omega = omega
         v = (self.v_right + self.v_left) / 2
@@ -66,6 +71,7 @@ class Robot:
         #Initial movement calculation
         dx = v * dt * math.cos(self.orientation)
         dy = v * dt * math.sin(self.orientation)
+
         proposed_x = self.x + dx
         proposed_y = self.y + dy
 
@@ -114,7 +120,8 @@ class Robot:
         collision = any(x<=0 for x in self.wall_sensor_distances)
         return collision
     
-    #Detects features within omni-sensor range and calculates distance + relative bearing
+    # Author: Jannick Smeets
+    # Description: Detects features within omni-sensor range and calculates distance + relative bearing
     def sense_features(self, map_features):
         self.detected_features = []
         for feature in map_features:

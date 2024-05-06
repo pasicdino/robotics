@@ -1,7 +1,9 @@
 import numpy as np
-import math
 
 class KalmanFilter:
+    # Authors: Guilherme De Sequeira, Dino Pasic, Jannick Smeets
+    # Description: Class that holds the logistics of the implemented Kalman Filter
+
     def __init__(self, initial_state, initial_covariance, process_noise, measurement_noise, robot, map):
         self.state = np.array(initial_state)  # State includes [x, y, orientation]
         self.covariance = np.array(initial_covariance)  # Initial covariance matrix
@@ -14,6 +16,8 @@ class KalmanFilter:
         self.robot = robot  # Reference to the robot object, assuming it holds map information
         self.map = map
 
+    # Authors: Guilherme De Sequeira, Dino Pasic
+    # Description: Predicts the next state of the robot and updates error covariance
     def predict(self, control_input, dt):
         x, y, theta = self.state
 
@@ -39,6 +43,8 @@ class KalmanFilter:
         ])
         self.covariance = F @ self.covariance @ F.T + self.process_noise
 
+    # Authors: Dino Pasic, Guilherme De Sequeira
+    # Description: Refines estimate of state and adjusts error covariance
     def update(self, measurements):
         for distance, bearing, feature in measurements:
             feature_x, feature_y = feature[0], feature[1]
@@ -67,6 +73,8 @@ class KalmanFilter:
         if len(self.path) % 100 == 0:
             self.covariance_history.append(((self.state[0], self.state[1]), self.calculate_covariance_ellipse(self.covariance)))
 
+    # Author: Guilherme De Sequeira
+    # Description: Calculates the expected measurements
     def calculate_expected_measurement(self, feature_x, feature_y):
         x, y, theta = self.state
         dx = feature_x - x
@@ -75,6 +83,8 @@ class KalmanFilter:
         bearing = np.arctan2(dy, dx) - theta
         return distance, bearing
 
+    # Author: Dino Pasic
+    # Description: Calculates the Jacobian H for measurement function
     def calculate_jacobian_H(self, feature_x, feature_y):
         x, y, theta = self.state
         dx = feature_x - x
@@ -90,6 +100,8 @@ class KalmanFilter:
         H[1, 2] = -1  # Partial derivative of bearing with respect to theta
         return H
 
+    # Author: Jannick Smeets
+    # Description: Calculates the properties needed to draw the covariance ellipse
     def calculate_covariance_ellipse(self, covariance):
         eigen_values, eigen_vectors = np.linalg.eigh(covariance)
         eigen_values = np.flip(eigen_values, 0)     # flip to decreasing order

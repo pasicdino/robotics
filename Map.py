@@ -2,7 +2,13 @@ import math
 from shapely.geometry import LineString, Point
 
 class Map:
+    # Author: Dino Pasic, Jannick Smeets
+    # Description: Class representing the full map to be populated with walls and features
+
     class Wall:
+        # Author: Dino Pasic
+        # Description: Class that represents each wall within the map
+
         def __init__(self, x1, y1, x2, y2):
             self.x1 = x1
             self.y1 = y1
@@ -30,6 +36,9 @@ class Map:
             return wall_vector_normalized
         
     class Feature:
+        # Author: Jannick Smeets
+        # Description: Class representing each feature within the map
+
         def __init__(self, x, y):
             self.x = x
             self.y = y
@@ -66,7 +75,6 @@ class Map:
         self.add_wall(WIDTH * 0.5, HEIGHT * 0.1, WIDTH * 0.8, HEIGHT * 0.1)
         self.add_wall(WIDTH * 0.3, HEIGHT * 0.2, WIDTH * 0.3, HEIGHT * 0.5)
 
-
     def add_hexagon_walls(self, center_x, center_y, size):
         #1/6th of a circle
         angle_step = math.pi / 3
@@ -84,7 +92,8 @@ class Map:
             x2, y2 = points[(i + 1) % 6]
             self.add_wall(x1, y1, x2, y2)
 
-    #Extracts map features/landmarks using vertices of wall lines
+    # Author: Jannick Smeets
+    # Description: Extracts map features/landmarks using vertices of wall lines
     def extract_features(self):
         existing_features = []
         for wall in self.walls:
