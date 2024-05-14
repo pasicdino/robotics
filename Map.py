@@ -1,4 +1,5 @@
 import math
+import random
 from shapely.geometry import LineString, Point
 
 class Map:
@@ -45,12 +46,24 @@ class Map:
             self.point = Point((x, y))
 
             self.radius = 5
+    
+    class DustParticle:
+        # Author: Jannick Smeets
+        # Description: Class representing each dust particle within the map
+
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+            self.point = Point((x, y))
+            self.collected = False
+            self.size = random.randint(1, 2)
 
     def __init__(self, width, height):
         self.width = width
         self.height = height
         self.walls = []
         self.features = []
+        self.dust_particles = []
 
     def add_wall(self, x1, y1, x2, y2):
         self.walls.append(self.Wall(x1, self.height - y1, x2, self.height - y2))
@@ -102,6 +115,15 @@ class Map:
                 self.features.append(self.Feature(wall.x1, wall.y1))
             if (wall.x2, wall.y2) not in existing_features:
                 existing_features.append((wall.x2, wall.y2))
-                self.features.append(self.Feature(wall.x2, wall.y2))       
+                self.features.append(self.Feature(wall.x2, wall.y2))
+
+    # Author: Jannick Smeets
+    # Description: Randomly distributes particles within the confines of the map
+    def simulate_dust(self, amount):
+        lower_range = (self.width*0.1, self.height*0.1)
+        upper_range = (self.width*0.1+self.height*0.8, self.height*0.1+self.height*0.8)
+
+        for n in range(amount):
+            self.dust_particles.append(self.DustParticle(random.randint(lower_range[0], upper_range[0]), random.randint(lower_range[1], upper_range[1])))
 
             

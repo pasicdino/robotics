@@ -28,6 +28,8 @@ class Robot:
         self.feature_sensor = FeatureSensor(200, self)
         self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [[distance, bearing, feature]]
 
+        self.dust_collected = 0     #the amount of dust particles collected by the robot
+
         self.velocity_vector = (0, 0)
         self.v = 0
         self.omega = 0
@@ -125,10 +127,22 @@ class Robot:
     def sense_features(self, map_features):
         self.detected_features = []
         for feature in map_features:
-            exact_distance = Point(self.x, self.y).distance(feature.point)
+            exact_distance = math.dist((self.x, self.y), (feature.x, feature.y))
             if exact_distance < self.feature_sensor_length:
                 vector = (feature.x - self.x, feature.y - self.y)
                 relative_bearing = math.degrees(math.atan2(vector[0], vector[1]) - self.orientation) % 360
                 self.detected_features.append((exact_distance, relative_bearing, feature))
+
+    # Author: Jannick Smeets
+    # Description: Sets dust particles as 'collected' when robot moves over it
+    def collect_dust(self, dust_particles):
+        for particle in dust_particles:
+            if not particle.collected:
+                distance = math.dist((self.x, self.y), (particle.x, particle.y))
+                if distance < self.radius:
+                    particle.collected = True
+                    self.dust_collected += 1
+            
+
 
 

@@ -26,14 +26,18 @@ BLUE = (0, 0, 255)
 GREEN = (0, 255, 0)
 PURPLE_ALPHA = (160, 32, 240, 75)
 YELLOW = (255, 255, 0)
+DUST_COLOUR = (210, 170, 109, 50)
 
 running = True
 clock = pygame.time.Clock()
+
+random.seed(212121)
 
 #Init map, and robot
 map = Map(WIDTH, HEIGHT)
 map.populate_map(WIDTH, HEIGHT)
 map.extract_features()
+map.simulate_dust(5000)
 robot = Robot(WIDTH*0.15, HEIGHT*0.85, 100)
 
 # Initialize Kalman Filter
@@ -52,7 +56,9 @@ sensor_values_always_visible = False
 feature_distance_visible = True
 feature_bearing_visible = True
 robot_orientation_visible = True
-covariance_ellipse_visible = True
+exact_path_visible = False
+estimated_path_visible = False
+covariance_ellipse_visible = False
 
 def engine_control():
     global running
@@ -114,7 +120,6 @@ def draw_sensors():
             text_rect = distance_text.get_rect(center=(int(sensor.text_coord[0]), HEIGHT - int(sensor.text_coord[1])))
             screen.blit(distance_text, text_rect)
 
-
 def draw_motor_values():
     motor_text_scale = robot.radius * 0.5
     left_motor_text_x = robot.x - motor_text_scale * math.sin(robot.orientation)
@@ -127,7 +132,6 @@ def draw_motor_values():
     right_text_rect = right_motor_text.get_rect(center=(int(right_motor_text_x), HEIGHT - int(right_motor_text_y)))
     screen.blit(left_motor_text, left_text_rect)
     screen.blit(right_motor_text, right_text_rect)
-
 
 def draw_force_vector():
     #Draw force vector [debugging]
@@ -175,6 +179,18 @@ def draw_covariance_ellipse(covariance_history, scale_factor):
             blit_position = (ellipse[0][0] - x_axis / 2, HEIGHT - ellipse[0][1] - x_axis / 2)   # get center position of ellipse
             screen.blit(rotated_surface, blit_position)
 
+def draw_dust_particles(dust_particles):
+    for particle in dust_particles:
+        if not particle.collected:
+            pygame.draw.circle(screen, DUST_COLOUR, (particle.x, HEIGHT - particle.y), particle.size, 0)
+
+# shows amount of dust collected
+def draw_dust_collection(collected_dust, position):
+    text = font.render("Dust collected: " + str(collected_dust), True, BLACK)
+    text_rect = text.get_rect(midleft=(int(position[0]), HEIGHT - int(position[1])))
+    screen.blit(text, text_rect)
+
+
 while running:
     #limit framerate
     dt = clock.tick(FPS) / 1000.0
@@ -187,6 +203,7 @@ while running:
     robot.update(dt, map.walls)
     robot.update_sensors(map.walls)
     robot.update_feature_sensors(map.walls, map.features)
+    robot.collect_dust(map.dust_particles)
 
     measurements = [(f[0], f[1], (f[2].x, f[2].y)) for f in robot.detected_features]
 
@@ -195,13 +212,17 @@ while running:
     screen.fill(WHITE)
     draw_walls()
     draw_features()
+    draw_dust_particles(map.dust_particles)
+    draw_dust_collection(robot.dust_collected, ((WIDTH/2), ((HEIGHT*0.1)/2)))
     draw_feature_lines(robot.detected_features)
     draw_robot()
     draw_sensors()
     draw_motor_values()
     draw_force_vector()
-    draw_path(robot.path, BLUE)
-    draw_path(kf.path, RED)
+    if exact_path_visible:
+        draw_path(robot.path, BLUE)
+    if estimated_path_visible:
+        draw_path(kf.path, RED)
     if covariance_ellipse_visible:
         draw_covariance_ellipse(kf.covariance_history, 20)
 
