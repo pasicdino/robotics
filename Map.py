@@ -1,5 +1,6 @@
 import math
 import random
+import shapely
 from shapely.geometry import LineString, Point
 
 class Map:
@@ -119,11 +120,23 @@ class Map:
 
     # Author: Jannick Smeets
     # Description: Randomly distributes particles within the confines of the map
-    def simulate_dust(self, amount):
-        lower_range = (self.width*0.1, self.height*0.1)
-        upper_range = (self.width*0.1+self.height*0.8, self.height*0.1+self.height*0.8)
+    def simulate_dust(self, amount, robot):
+        lower_range = (self.width*0.1, self.height*0.1)                                     # [still hardcoded]
+        upper_range = (self.width*0.1+self.height*0.8, self.height*0.1+self.height*0.8)     # [still hardcoded]
+        n = 0
+        while n < amount:
+            random_x = random.randint(lower_range[0], upper_range[0])
+            random_y = random.randint(lower_range[1], upper_range[1])
 
-        for n in range(amount):
-            self.dust_particles.append(self.DustParticle(random.randint(lower_range[0], upper_range[0]), random.randint(lower_range[1], upper_range[1])))
+            # makes sure that none of the particles fall on walls
+            on_wall = False
+            for wall in self.walls:
+                if shapely.intersects(wall.line, Point(random_x, random_y)):
+                    on_wall = True
+
+            # also makes sure no dust is placed at robot's initial location
+            if not on_wall and math.dist((robot.x, robot.y), (random_x, random_y)) > robot.radius:
+                self.dust_particles.append(self.DustParticle(random_x, random_y))
+                n += 1
 
             
