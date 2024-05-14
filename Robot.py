@@ -8,7 +8,7 @@ class Robot:
     # Author: Dino Pasic, Jannick Smeets
     # Description: Class representing the robot, holds motion and sensor control
 
-    def __init__(self, x, y, power, HEIGHT):
+    def __init__(self, x, y, power):
         self.radius = 20
         self.x = x
         self.y = y

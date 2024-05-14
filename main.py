@@ -34,7 +34,7 @@ clock = pygame.time.Clock()
 map = Map(WIDTH, HEIGHT)
 map.populate_map(WIDTH, HEIGHT)
 map.extract_features()
-robot = Robot(WIDTH*0.15, HEIGHT*0.85, 100, HEIGHT)
+robot = Robot(WIDTH*0.15, HEIGHT*0.85, 100)
 
 # Initialize Kalman Filter
 initial_state = [robot.x, robot.y, robot.orientation]  # Assuming the robot's initial x, y, and orientation are set
