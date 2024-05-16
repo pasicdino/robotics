@@ -9,15 +9,25 @@ from Map import Map
 
 pygame.init()
 
-WIDTH, HEIGHT = 800, 800
 FPS = 60 #No issues regarding collusions with this timestep & power combination so i suggest to just stick with this
 #Might want to speed it up when doing some learning but we will cross that bridge when we get there
 
-#Boilerplate pygame code
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Robot Simulation")
 
-font = pygame.font.SysFont(None, 16)
+# ========= CONFIGURATION CONSTANTS =========
+TILE_SIZE = 80          # size of one square tile in pixels
+MAP_SIZE = (10, 10)     # size of the map in tiles (horizontal, vertical)
+DUST_PER_TILE = 100     # amount of dust particles covering one tile
+
+START_TILE = (1, 10)    # robot's starting tile in grid (horizontal, vertical) - (1, 1) = bottom left
+
+MAP_COMPLEXITY = 4      # degree of complexity of the randomly generated map (should be adjusted based on map size)
+
+SEED = 2121             # <--- change this for different map generation (!!!)
+
+# ======== MISC CONSTANTS ========
+WIDTH = (MAP_SIZE[0] + 2) * TILE_SIZE
+HEIGHT = (MAP_SIZE[1] + 2) * TILE_SIZE
+TOTAL_DUST = MAP_SIZE[0] * MAP_SIZE[1] * DUST_PER_TILE 
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -28,28 +38,7 @@ PURPLE_ALPHA = (160, 32, 240, 75)
 YELLOW = (255, 255, 0)
 DUST_COLOUR = (210, 170, 109, 50)
 
-running = True
-clock = pygame.time.Clock()
-
-random.seed(212121)
-
-#Init map, and robot
-map = Map(WIDTH, HEIGHT)
-map.populate_map(WIDTH, HEIGHT)
-map.extract_features()
-robot = Robot(WIDTH*0.15, HEIGHT*0.85, 100)
-map.simulate_dust(5000, robot)
-
-# Initialize Kalman Filter
-initial_state = [robot.x, robot.y, robot.orientation]  # Assuming the robot's initial x, y, and orientation are set
-initial_state = [random.randrange(WIDTH), random.randrange(HEIGHT), random.uniform(0, 2*math.pi)]
-initial_covariance = np.eye(3) * 0.1  # Small initial uncertainty
-process_noise = np.diag([0.02, 0.02, np.deg2rad(0.5)])  # Process noise covariance matrix
-measurement_noise = np.diag([0.1, np.deg2rad(5)])  # Measurement noise covariance matrix
-
-kf = KalmanFilter(initial_state, initial_covariance, process_noise, measurement_noise, robot, map)
-
-#Enable or disable force vector sensor, sensor value, and motor value visibility
+# ======== Visualization Flags ========
 force_vector_visible = False
 sensor_lines_visible = False
 sensor_values_always_visible = False
@@ -59,6 +48,35 @@ robot_orientation_visible = True
 exact_path_visible = False
 estimated_path_visible = False
 covariance_ellipse_visible = False
+
+#Boilerplate pygame code
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Robot Simulation")
+
+font = pygame.font.SysFont(None, 16)
+
+running = True
+clock = pygame.time.Clock()
+
+random.seed(SEED)
+
+# Initialize map and robot
+map = Map(WIDTH, HEIGHT, MAP_SIZE, TILE_SIZE, MAP_COMPLEXITY)
+map.generate()
+
+start_position = map.calculate_initial_position(START_TILE)
+robot = Robot(start_position[0], start_position[1], 100)
+
+map.simulate_dust(TOTAL_DUST, robot)
+
+# Initialize Kalman Filter
+initial_state = [robot.x, robot.y, robot.orientation]  # Assuming the robot's initial x, y, and orientation are set
+initial_state = [random.randrange(WIDTH), random.randrange(HEIGHT), random.uniform(0, 2*math.pi)]
+initial_covariance = np.eye(3) * 0.1  # Small initial uncertainty
+process_noise = np.diag([0.02, 0.02, np.deg2rad(0.5)])  # Process noise covariance matrix
+measurement_noise = np.diag([0.1, np.deg2rad(5)])  # Measurement noise covariance matrix
+
+kf = KalmanFilter(initial_state, initial_covariance, process_noise, measurement_noise, robot, map)
 
 def engine_control():
     global running
@@ -186,7 +204,7 @@ def draw_dust_particles(dust_particles):
 
 # shows amount of dust collected
 def draw_dust_collection(collected_dust, position):
-    text = font.render("Dust collected: " + str(collected_dust), True, BLACK)
+    text = font.render("Dust collected: {} / {}".format(collected_dust, TOTAL_DUST), True, BLACK)
     text_rect = text.get_rect(midleft=(int(position[0]), HEIGHT - int(position[1])))
     screen.blit(text, text_rect)
 
