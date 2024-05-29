@@ -8,7 +8,8 @@ from Robot import Robot
 from Map import Map
 
 GUI = False
-def run(nn=None):
+
+def run(nn=None, seed=0):
     if GUI:
         pygame.init()
 
@@ -17,14 +18,14 @@ def run(nn=None):
 
     # ========= CONFIGURATION CONSTANTS =========
     TILE_SIZE = 80  # size of one square tile in pixels
-    MAP_SIZE = (5, 5)  # size of the map in tiles (horizontal, vertical)
+    MAP_SIZE = (3, 3)  # size of the map in tiles (horizontal, vertical)
     DUST_PER_TILE = 100  # amount of dust particles covering one tile
 
-    START_TILE = (1, 5)  # robot's starting tile in grid (horizontal, vertical) - (1, 1) = bottom left
+    START_TILE = (1, 3)  # robot's starting tile in grid (horizontal, vertical) - (1, 1) = bottom left
 
-    MAP_COMPLEXITY = 4  # degree of complexity of the randomly generated map (should be adjusted based on map size)
+    MAP_COMPLEXITY = 3  # degree of complexity of the randomly generated map (should be adjusted based on map size)
 
-    SEED = random.randint(0,9999)  # <--- change this for different map generation (!!!)
+    SEED = seed#random.randint(0,9999)  # <--- change this for different map generation (!!!)
 
     # ======== MISC CONSTANTS ========
     WIDTH = (MAP_SIZE[0] + 2) * TILE_SIZE
@@ -105,7 +106,7 @@ def run(nn=None):
                     if event.key in [pygame.K_KP6, pygame.K_KP3]:
                         robot.right_motor(False, True)  # Turn off right motor
         else:
-            values = nn.forward(robot.wall_sensor_distances)
+            values = nn.forward(np.concatenate((kf.state[:2], robot.wall_sensor_distances)))
             value_left = values[0]
             value_right = values[1]
             if value_left >= 0.5:
@@ -278,4 +279,10 @@ def run(nn=None):
             pygame.display.update()
     if GUI:
         pygame.quit()
-    return robot.dust_collected/len(map.dust_particles)
+    return max(0, (robot.dust_collected/len(map.dust_particles)) * (1- 0.005*robot.collisions_detected))
+
+def runset(nn=None):
+    total = 0
+    for i in range(3):
+        total += run(nn, i)
+    return total/3

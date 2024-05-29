@@ -39,10 +39,10 @@ class Controller(nn.Module):
         weights = np.array(weights)
 
         # Extract weights and biases
-        w1 = weights[0:288].reshape(24, 12)  # 24x12 weights for fc1
-        b1 = weights[288:312]  # 24 biases for fc1
-        w2 = weights[312:360].reshape(2, 24)  # 2x24 weights for fc2
-        b2 = weights[360:362]  # 2 biases for fc2
+        w1 = weights[0:336].reshape(24, 14)  # Changed shape to 24x14 for fc1
+        b1 = weights[336:360]  # 24 biases for fc1
+        w2 = weights[360:408].reshape(2, 24)  # 2x24 weights for fc2
+        b2 = weights[408:410]  # 2 biases for fc2
 
         # Set custom weights and biases
         self.custom_fc1_weight = torch.tensor(w1, dtype=torch.float32)
@@ -52,4 +52,4 @@ class Controller(nn.Module):
 
     def simulate(self, weights):
         self.set_weights(weights)
-        return main.run(self)
+        return main.runset(self)

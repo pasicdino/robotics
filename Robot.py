@@ -25,10 +25,12 @@ class Robot:
         self.wall_sensors = [WallSensor(i * 30, self) for i in range(12)]
         self.wall_sensor_distances = [0]*12
 
-        self.feature_sensor = FeatureSensor(200, self)
+        self.feature_sensor = FeatureSensor(100, self)
         self.detected_features = []         #holds detected features from omni-directional sensor, together with distance to robot - [[distance, bearing, feature]]
 
         self.dust_collected = 0     #the amount of dust particles collected by the robot
+
+        self.collisions_detected = 0
 
         self.velocity_vector = (0, 0)
         self.v = 0
@@ -83,6 +85,7 @@ class Robot:
         #Detect initial collision, also decomposes the vector
         for wall in walls:
             if movement_line.intersects(wall.line):
+                self.collisions_detected += 1
                 movement_vector = (self.direction * self.power * math.cos(self.orientation), self.direction * self.power * math.sin(self.orientation))
                 dot_product = movement_vector[0] * wall.vector_normalized[0] + movement_vector[1] * \
                               wall.vector_normalized[1]
