@@ -12,7 +12,7 @@ class GA:
         self.elite_size = elite_size
 
     #Method that inits population. Since we have many weights, we can go over all of them 1 by 1 and assign the weight
-    #Instead of having to slice everything. This way, changing layers will also not impact this process.
+    #Instead of having to slice everything. This way, changing layers will also not impact this process. (GPT helped)
     def initialize_population(self):
         return [self._generate_random_weights(self.nn_class()) for _ in range(self.population_size)]
 

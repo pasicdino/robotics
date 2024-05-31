@@ -7,7 +7,7 @@ from KalmanFilter import KalmanFilter
 from Robot import Robot
 from Map import Map
 
-GUI = False
+GUI = True
 
 
 def run(nn=None, seed=0, sim=False):
@@ -26,7 +26,7 @@ def run(nn=None, seed=0, sim=False):
 
     MAP_COMPLEXITY = 3  # degree of complexity of the randomly generated map (should be adjusted based on map size)
 
-    SEED = seed  #random.randint(0,9999)  # <--- change this for different map generation (!!!)
+    SEED = random.randint(0,9999)  # <--- change this for different map generation (!!!)
 
     # ======== MISC CONSTANTS ========
     WIDTH = (MAP_SIZE[0] + 2) * TILE_SIZE
@@ -243,7 +243,7 @@ def run(nn=None, seed=0, sim=False):
     while running:
 
         time += 1
-        if time > 800:
+        if time > 400:
             running = False
         if not sim:
             dt = clock.tick(FPS) / 1000
@@ -289,6 +289,6 @@ def run(nn=None, seed=0, sim=False):
 
 def runset(nn=None, sim=False):
     total = 0
-    for i in range(2):
+    for i in range(10):
         total += run(nn, i, sim)
-    return total / 2
+    return total / 10
