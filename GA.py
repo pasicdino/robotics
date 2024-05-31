@@ -2,6 +2,7 @@ import numpy as np
 from RNN import RNN
 
 #Class containing GA and all functions associated with it
+#Author: Dino
 class GA:
     def __init__(self, population_size, mutation_rate, crossover_rate, generations, nn_class, elite_size=2):
         self.population_size = population_size

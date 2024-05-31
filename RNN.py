@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import main
 
+#Author: Dino
 class RNN(nn.Module):
     #USing the torch nn framework, make an NN with 2 hidden layers and including recurrence through LSTM
     def __init__(self):
